@@ -1,0 +1,6 @@
+name: Calculator
+version: 0.1
+author: Aksyo
+main: net.aksyo.Main
+commands:
+  calculate:
