@@ -132,7 +132,7 @@ class Calculate {
         final String finalOperation = operation.replaceAll(" ", "");
         ScriptEngineManager engineManager = new ScriptEngineManager();
         ScriptEngine engine = engineManager.getEngineByName("JavaScript");
-        return engine.eval(operation);
+        return engine.eval(finalOperation);
     }
 
 
