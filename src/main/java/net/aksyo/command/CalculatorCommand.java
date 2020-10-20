@@ -61,7 +61,7 @@ class Calculate {
             if (i % 3 == 0) skip++;
             int slot = skip * 9 + i % 3, num = i + 1;
             calculator.setItem(slot, new ItemBuilder(Material.ICE).setName("§6" + num).create(), (target, inventoryClickEvent) -> {
-                String value = calculator.getInventory().getName().toCharArray().length != 1 ?  " " + num : String.valueOf(num),
+                String value = calculator.getInventory().getName().toCharArray().length == 1 ?  " " + num : String.valueOf(num),
                         current = meta.getDisplayName();
                 updateScreen(value, current);
             });
@@ -85,7 +85,15 @@ class Calculate {
             });
         }
 
-        calculator.setItem(35, new ItemBuilder(Material.GOLD_AXE).setName("§3Calculate").create(), ((target, inventoryClickEvent) -> {
+        calculator.setItem(35, new ItemBuilder(Material.ENCHANTED_BOOK).setName("§6Square").create(), ((target, inventoryClickEvent) -> {
+            String value = "²", current = meta.getDisplayName();
+            player.playSound(player.getLocation(), Sound.ANVIL_LAND, 1f, 1f);
+            /*
+            * STILL WORKING ON THE SQUARE
+             */
+        }));
+
+        calculator.setItem(44, new ItemBuilder(Material.GOLD_AXE).setName("§3Calculate").create(), ((target, inventoryClickEvent) -> {
             player.closeInventory();
             try {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
@@ -108,7 +116,6 @@ class Calculate {
 
     protected void updateScreen(String value, String current) {
         calculator.getInventory().remove(screen);
-        System.out.println("Value : " + value + " Current : " + current);
         current = current + value;
         meta.setDisplayName(current);
         screen.setItemMeta(meta);
@@ -129,7 +136,7 @@ class Calculate {
     }
 
     protected final Object calculate(String operation) throws ScriptException {
-        final String finalOperation = operation.replaceAll(" ", "");
+        final String finalOperation = operation.replaceAll(" ", "").replaceAll("x", "*");
         ScriptEngineManager engineManager = new ScriptEngineManager();
         ScriptEngine engine = engineManager.getEngineByName("JavaScript");
         return engine.eval(finalOperation);
