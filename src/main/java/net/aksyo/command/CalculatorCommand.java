@@ -44,7 +44,7 @@ class Calculate {
 
     private GUI calculator;
     private Player player;
-    private ItemStack screen = new ItemStack(Material.RAILS);
+    private ItemStack screen = new ItemStack(Material.PAINTING);
     private ItemMeta meta = screen.getItemMeta();
     private char[] operators = { '+', '-', 'x', '/' };
 
@@ -79,6 +79,17 @@ class Calculate {
                     current = meta.getLore().get(1);
             updateScreen(value, current);
         });
+        calculator.setItem(55, new ItemBuilder(Material.PACKED_ICE).setName("§6.").create(), (target, inventoryClickEvent) -> {
+            String value = ".",
+                    current = meta.getLore().get(1);
+            if (canInsertOperator(meta.getLore().get(1).toCharArray())) {
+                updateScreen(value, current);
+            } else {
+                player.playSound(player.getLocation(), Sound.ANVIL_LAND, 1f, 1f);
+            }
+
+        });
+
 
         line = 2;
         for (int i = 0; i < operators.length; i++, t++) {
@@ -108,11 +119,13 @@ class Calculate {
         calculator.setItem(44, new ItemBuilder(Material.GOLD_AXE).setName("§3Calculate").create(), ((target, inventoryClickEvent) -> {
             player.closeInventory();
             try {
-                player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
                 Object result = calculate(meta.getLore().get(1));
                 player.sendMessage("§aThe result is : §b" + result);
+                playSound();
             } catch (ScriptException e) {
                 player.sendMessage("§cError : Math Exception");
+                player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+
                 e.printStackTrace();
             }
         }));
@@ -149,13 +162,27 @@ class Calculate {
 
     protected void showChat(int delayInSeconds) {
         player.closeInventory();
-        player.sendMessage("§3Current : §c" + screen.getItemMeta().getDisplayName());
+        player.sendMessage("§3Current : §c" + screen.getItemMeta().getLore().get(1));
         new BukkitRunnable() {
             @Override
             public void run() {
                 calculator.open(player);
             }
         }.runTaskLater(Main.getInstance(), delayInSeconds * 20);
+    }
+
+    protected void playSound() {
+        for (int i = 0; i < 5; i++) {
+            final float volume = 0.5f + i * 0.2f;
+            final int ticks = i * 4;
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.playSound(player.getLocation(), Sound.NOTE_PIANO, 1, volume);
+                }
+            }.runTaskLater(Main.getInstance(), ticks);
+        }
+
     }
 
     protected final Object calculate(String operation) throws ScriptException {
