@@ -16,6 +16,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 public class CalculatorCommand implements CommandExecutor {
@@ -50,34 +53,43 @@ class Calculate {
         this.player = player;
         calculator = new GUI(Main.getInstance(), "§2Texas Instrument", 8);
 
-        meta.setDisplayName(" ");
+        meta.setDisplayName("§3§lCurrent Operation");
+        meta.setLore(Arrays.asList("§6------------------------------",
+                " ",
+                "§6------------------------------"));
         screen.setItemMeta(meta);
-        calculator.setItem(4, screen, ((target, inventoryClickEvent) -> {
-            showChat();
+        calculator.setItem(13, screen, ((target, inventoryClickEvent) -> {
+            showChat(5);
         }));
 
-        int skip = 2, t = 4;
+        int line = 2, t = 4;
         for (int i = 0; i < 9; i++) {
-            if (i % 3 == 0) skip++;
-            int slot = skip * 9 + i % 3, num = i + 1;
+            if (i % 3 == 0) line++;
+            int slot = line * 9 + i % 3, num = i + 1;
             calculator.setItem(slot, new ItemBuilder(Material.ICE).setName("§6" + num).create(), (target, inventoryClickEvent) -> {
                 String value = calculator.getInventory().getName().toCharArray().length == 1 ?  " " + num : String.valueOf(num),
-                        current = meta.getDisplayName();
+                        current = meta.getLore().get(1);
                 updateScreen(value, current);
             });
 
         }
 
-        skip = 2;
+        calculator.setItem(54, new ItemBuilder(Material.PACKED_ICE).setName("§60").create(), (target, inventoryClickEvent) -> {
+            String value = calculator.getInventory().getName().toCharArray().length == 1 ?  " " + 0 : "0",
+                    current = meta.getLore().get(1);
+            updateScreen(value, current);
+        });
+
+        line = 2;
         for (int i = 0; i < operators.length; i++, t++) {
-            if (i % 2 == 0) skip++;
+            if (i % 2 == 0) line++;
             if (t == 5) t = 4;
-            int slot = skip * 9 + i % 2 + t;
+            int slot = line * 9 + i % 2 + t;
             char op = operators[i];
             calculator.setItem(slot, new ItemBuilder(Material.IRON_BLOCK).setName("§6" + op).create(), (target, inventoryClickEvent) -> {
                 String value = " " + String.valueOf(op) + " ",
-                        current = meta.getDisplayName();
-                if (canInsertOperator(meta.getDisplayName().toCharArray()) || op == '-') {
+                        current = meta.getLore().get(1);
+                if (canInsertOperator(meta.getLore().get(1).toCharArray()) || op == '-') {
                     updateScreen(value, current);
                 } else {
                     player.playSound(player.getLocation(), Sound.ANVIL_LAND, 1f, 1f);
@@ -97,13 +109,22 @@ class Calculate {
             player.closeInventory();
             try {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
-                Object result = calculate(meta.getDisplayName());
+                Object result = calculate(meta.getLore().get(1));
                 player.sendMessage("§aThe result is : §b" + result);
             } catch (ScriptException e) {
                 player.sendMessage("§cError : Math Exception");
                 e.printStackTrace();
             }
         }));
+
+        for (int i = 0; i < 9; i++) {
+            calculator.setItem(18 + i, new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 4), ((target, inventoryClickEvent) -> {
+                showChat(2);
+            }));
+            calculator.setItem(63 + i, new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 4), ((target, inventoryClickEvent) -> {
+                showChat(2);
+            }));
+        }
 
         calculator.setLocked(true);
         calculator.open(player);
@@ -117,14 +138,16 @@ class Calculate {
     protected void updateScreen(String value, String current) {
         calculator.getInventory().remove(screen);
         current = current + value;
-        meta.setDisplayName(current);
+        List<String> lore = meta.getLore();
+        lore.set(1, current);
+        meta.setLore(lore);
         screen.setItemMeta(meta);
-        calculator.setItem(4, screen, ((target, inventoryClickEvent) -> {
-            showChat();
+        calculator.setItem(13, screen, ((target, inventoryClickEvent) -> {
+            showChat(5);
         }));
     }
 
-    protected void showChat() {
+    protected void showChat(int delayInSeconds) {
         player.closeInventory();
         player.sendMessage("§3Current : §c" + screen.getItemMeta().getDisplayName());
         new BukkitRunnable() {
@@ -132,7 +155,7 @@ class Calculate {
             public void run() {
                 calculator.open(player);
             }
-        }.runTaskLater(Main.getInstance(), 100);
+        }.runTaskLater(Main.getInstance(), delayInSeconds * 20);
     }
 
     protected final Object calculate(String operation) throws ScriptException {
