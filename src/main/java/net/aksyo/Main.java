@@ -16,9 +16,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        instance = this;
+        instance = this; //Main class instance is defined here
 
-        getCommand("calculate").setExecutor(new CalculatorCommand());
+        getCommand("calculate").setExecutor(new CalculatorCommand()); //The command to open the calculator
     }
 
     @Override
